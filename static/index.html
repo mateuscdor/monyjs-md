@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!-- Bootstrap CSS -->
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+			crossorigin="anonymous"
+		/>
+		<title>Document</title>
+	</head>
+	<body>
+		<div id="app"></div>
+	</body>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+	<script
+		crossorigin
+		src="https://unpkg.com/react@17/umd/react.development.js"
+	></script>
+	<script
+		crossorigin
+		src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+	></script>
+	<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"
+		integrity="sha512-u9akINsQsAkG9xjc1cnGF4zw5TFDwkxuc9vUp5dltDWYCSmyd0meygbvgXrlc/z7/o4a19Fb5V0OUE58J7dcyw=="
+		crossorigin="anonymous"
+		referrerpolicy="no-referrer"
+	></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script type="text/babel">
+		const socket = io();
+		let socket_id = "";
+		socket.on("connect", (sock) => {
+			socket_id = socket.id;
+		});
+
+		const { useState, useEffect } = React;
+
+		function Hello() {
+			const [form, setForm] = useState({
+				bot_id: undefined,
+				authorization: undefined,
+			});
+
+			const [qrdata, setQrdata] = useState("");
+
+			socket.on("qr", (qr) => {
+				setQrdata(qr);
+				console.log(qr);
+			});
+
+			socket.on("bot_success", (payload) => {
+				Swal.fire({
+					icon: "success",
+					title: "Success",
+					text: payload,
+					timer: 1500,
+				});
+			});
+
+			useEffect(() => {
+				console.log(qrdata);
+			}, [qrdata, setQrdata]);
+
+			socket.on("qr_timeout", (payload) => {
+				Swal.fire({
+					icon: "error",
+					title: "Error",
+					text: payload,
+					timer: 1500,
+				});
+				setQrdata("");
+			});
+
+			function onSubmit() {
+				let temp_bot_id = form.bot_id;
+				if(!temp_bot_id)
+				{
+					temp_bot_id = socket_id;
+				}
+
+				axios
+					.post(window.location.href + "createBotInstance", {
+						bot_id: temp_bot_id,
+						authorization: form.authorization,
+						ws_id: socket_id,
+					})
+					.then((res) => {
+						console.log(res);
+						Swal.fire({
+							icon: "success",
+							title: "Success",
+							text: "Create bot instance success, please scan the qr",
+							timer: 1500,
+						});
+					})
+					.catch((error) => {
+						console.log(error.response.data);
+						Swal.fire({
+							icon: "error",
+							title: "Error",
+							text: error.response.data.Error,
+							timer: 1500,
+						});
+					});
+			}
+
+			return (
+				<div className="container mt-2">
+					<div className="mb-3">
+						<label htmlFor="id" className="form-label">
+							ID
+						</label>
+						<input
+							type="text"
+							value={form.bot_id}
+							onChange={(e) =>
+								setForm({ ...form, bot_id: e.target.value })
+							}
+							className="form-control"
+							id="id"
+						/>
+					</div>
+					<div className="mb-3">
+						<label htmlFor="pass" className="form-label">
+							Password
+						</label>
+						<input
+							type="password"
+							value={form.authorization}
+							onChange={(e) =>
+								setForm({
+									...form,
+									authorization: e.target.value,
+								})
+							}
+							className="form-control"
+							id="pass"
+						/>
+					</div>
+					<button
+						type="submit"
+						className="btn btn-primary"
+						onClick={onSubmit}
+					>
+						Submit
+					</button>
+					<div className="d-flex justify-content-center">
+						{qrdata !== "" ? (
+							<img
+								className="img-fluid"
+								src={`data:image/png;base64, ${qrdata}`}
+							/>
+						) : (
+							""
+						)}
+					</div>
+				</div>
+			);
+		}
+
+		ReactDOM.render(<Hello />, document.getElementById("app"));
+	</script>
+</html>
