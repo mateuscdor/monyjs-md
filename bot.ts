@@ -1,4 +1,4 @@
-import makeWASocket, { AnyMessageContent, AnyWASocket, DisconnectReason, downloadContentFromMessage, MiscMessageGenerationOptions, useSingleFileAuthState, } from '@adiwajshing/baileys-md'
+import makeWASocket, { AnyMessageContent, AnyWASocket, DisconnectReason, downloadContentFromMessage, MiscMessageGenerationOptions, useSingleFileAuthState } from '@adiwajshing/baileys-md'
 import { Boom } from "@hapi/boom"
 // import { dbChat } from './module/db'
 import * as fs from 'fs'
@@ -10,6 +10,7 @@ import { botContext } from './module/botContext'
 const botArray: { [k: string]: AnyWASocket } = {}
 const failArray = {}
 Ctx.registerArrayContext(botContext)
+
 
 const sendText = async (bot_id: string, number: string, content: AnyMessageContent, options?: MiscMessageGenerationOptions) => {
     try {
@@ -66,10 +67,12 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
             sock.sendReadReceipt(msg.key.remoteJid, msg.key.participant, [msg.key.id])
             if (msg.message.imageMessage.caption.includes("!mony")) {
                 Ctx.setState(msg.key.remoteJid, "!imageSticker")
-                Ctx.Context(msg.key.remoteJid, { bot: sock, bot_id: bot_id, other: {
-                    caption: msg.message.imageMessage.caption,
-                    stream: await downloadContentFromMessage(msg.message.imageMessage, 'image')
-                }})
+                Ctx.Context(msg.key.remoteJid, {
+                    bot: sock, bot_id: bot_id, other: {
+                        caption: msg.message.imageMessage.caption,
+                        stream: await downloadContentFromMessage(msg.message.imageMessage, 'image')
+                    }
+                })
             }
         }
 
