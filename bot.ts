@@ -182,7 +182,20 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
                 startWhatsapp(bot_id, ws_id)
             }
             else if ((lastDisconnect.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut && isFailedCreateInstance) {
-                return "";
+                if (typeof failArray[bot_id] === 'undefined') {
+                    failArray[bot_id] = 1;
+                } else {
+                    failArray[bot_id]++;
+                }
+                fs.unlinkSync(`./authState/${bot_id}.json`)
+                console.log('key mismatch')
+
+                if (failArray[bot_id] < 3) {
+                    startWhatsapp(bot_id, ws_id)
+                } else {
+                    delete failArray[bot_id]
+                }
+
             }
             else if ((lastDisconnect.error as Boom)?.output?.statusCode === DisconnectReason.loggedOut) {
                 if (typeof failArray[bot_id] === 'undefined') {
@@ -202,6 +215,19 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
             }
             else {
                 console.log('connection closed')
+                if (typeof failArray[bot_id] === 'undefined') {
+                    failArray[bot_id] = 1;
+                } else {
+                    failArray[bot_id]++;
+                }
+                fs.unlinkSync(`./authState/${bot_id}.json`)
+                console.log('key mismatch')
+
+                if (failArray[bot_id] < 3) {
+                    startWhatsapp(bot_id, ws_id)
+                } else {
+                    delete failArray[bot_id]
+                }
             }
         }
 
