@@ -13,7 +13,12 @@ exports.botContext = [
     {
         state: '!getid',
         callback: (id, payload) => {
-            return payload.bot.sendMessage(id, { text: payload.bot_id });
+            try {
+                return payload.bot.sendMessage(id, { text: payload.bot_id });
+            }
+            catch (e) {
+                console.log(e);
+            }
         }
     },
     {
@@ -28,7 +33,12 @@ exports.botContext = [
                 "*- Pengecekan status KIPK* \n" +
                 "/kipk/{nomor pendaftaran}/{kode akses} \n\n" +
                 "Tunggu fitur yang lainnya ya kak!";
-            return payload.bot.sendMessage(id, { text: msg });
+            try {
+                return payload.bot.sendMessage(id, { text: msg });
+            }
+            catch (error) {
+                console.log(error);
+            }
         }
     },
     {
@@ -45,7 +55,12 @@ exports.botContext = [
                 author: capt.author,
             };
             const sticker = await (0, dist_1.createSticker)(buffer, stickerMetadata);
-            return payload.bot.sendMessage(id, { sticker: sticker });
+            try {
+                return payload.bot.sendMessage(id, { sticker: sticker });
+            }
+            catch (error) {
+                console.log(error);
+            }
         }
     },
 ];

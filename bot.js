@@ -80,10 +80,12 @@ const startWhatsapp = async (bot_id, ws_id) => {
             sock.sendReadReceipt(msg.key.remoteJid, msg.key.participant, [msg.key.id]);
             if (msg.message.imageMessage.caption.includes("!mony")) {
                 context_chatbot_1.Ctx.setState(msg.key.remoteJid, "!imageSticker");
-                context_chatbot_1.Ctx.Context(msg.key.remoteJid, { bot: sock, bot_id: bot_id, other: {
+                context_chatbot_1.Ctx.Context(msg.key.remoteJid, {
+                    bot: sock, bot_id: bot_id, other: {
                         caption: msg.message.imageMessage.caption,
                         stream: await (0, baileys_md_1.downloadContentFromMessage)(msg.message.imageMessage, 'image')
-                    } });
+                    }
+                });
             }
         }
         console.log(msg.message.conversation);
@@ -185,7 +187,20 @@ const startWhatsapp = async (bot_id, ws_id) => {
                 startWhatsapp(bot_id, ws_id);
             }
             else if (((_f = (_e = lastDisconnect.error) === null || _e === void 0 ? void 0 : _e.output) === null || _f === void 0 ? void 0 : _f.statusCode) !== baileys_md_1.DisconnectReason.loggedOut && isFailedCreateInstance) {
-                return "";
+                if (typeof failArray[bot_id] === 'undefined') {
+                    failArray[bot_id] = 1;
+                }
+                else {
+                    failArray[bot_id]++;
+                }
+                fs.unlinkSync(`./authState/${bot_id}.json`);
+                console.log('key mismatch');
+                if (failArray[bot_id] < 3) {
+                    startWhatsapp(bot_id, ws_id);
+                }
+                else {
+                    delete failArray[bot_id];
+                }
             }
             else if (((_h = (_g = lastDisconnect.error) === null || _g === void 0 ? void 0 : _g.output) === null || _h === void 0 ? void 0 : _h.statusCode) === baileys_md_1.DisconnectReason.loggedOut) {
                 if (typeof failArray[bot_id] === 'undefined') {
@@ -205,6 +220,20 @@ const startWhatsapp = async (bot_id, ws_id) => {
             }
             else {
                 console.log('connection closed');
+                if (typeof failArray[bot_id] === 'undefined') {
+                    failArray[bot_id] = 1;
+                }
+                else {
+                    failArray[bot_id]++;
+                }
+                fs.unlinkSync(`./authState/${bot_id}.json`);
+                console.log('key mismatch');
+                if (failArray[bot_id] < 3) {
+                    startWhatsapp(bot_id, ws_id);
+                }
+                else {
+                    delete failArray[bot_id];
+                }
             }
         }
         console.log('connection update: ', update);

@@ -10,6 +10,7 @@ declare const startWhatsapp: (bot_id: string, ws_id: string) => Promise<{
     sendMessageAck: ({ tag, attrs }: import("@adiwajshing/baileys-md").BinaryNode, extraAttrs: {
         [key: string]: string;
     }) => Promise<void>;
+    sendRetryRequest: (node: import("@adiwajshing/baileys-md").BinaryNode) => Promise<void>;
     appPatch: (patchCreate: import("@adiwajshing/baileys-md").WAPatchCreate) => Promise<void>;
     sendPresenceUpdate: (type: import("@adiwajshing/baileys-md").WAPresence, toJid?: string) => Promise<void>;
     presenceSubscribe: (toJid: string) => Promise<void>;
