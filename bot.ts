@@ -145,6 +145,7 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
 
     sock.ev.on('connection.update', update => {
         if (typeof update.isNewLogin !== "undefined") {
+            failArray[bot_id] = 0;
             if (update.isNewLogin) {
                 // messages.deleteMany({}).then(() => console.log('new login, messages deleted')).catch(e => console.error(e))
                 // status.deleteMany({}).then(() => console.log('new login, status deleted')).catch(e => console.error(e))
@@ -172,10 +173,19 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
 
             //connection closed, duplicate connection
             if ((lastDisconnect.error as Boom)?.output?.statusCode === DisconnectReason.connectionClosed) {
-                io.to(ws_id).emit("duplicate_connection", "Bot already connected with this session, abort connection")
-                delete failArray[bot_id]
-                isFailedCreateInstance = true
-                return sock.ws.close()
+                if (typeof failArray[bot_id] === 'undefined') {
+                    failArray[bot_id] = 1;
+                } else {
+                    failArray[bot_id]++;
+                }
+                fs.unlinkSync(`./authState/${bot_id}.json`)
+                console.log('key mismatch')
+
+                if (failArray[bot_id] < 3) {
+                    startWhatsapp(bot_id, ws_id)
+                } else {
+                    delete failArray[bot_id]
+                }
             }
             //not identified error, try reconnect
             else if ((lastDisconnect.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut && !isFailedCreateInstance) {
