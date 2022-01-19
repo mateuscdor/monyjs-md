@@ -56,7 +56,7 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
                     Ctx.setState(msg.key.remoteJid, msg.message.conversation)
                     break;
                 default:
-                    Ctx.setState(msg.key.remoteJid, "default")
+                    Ctx.setState(msg.key.remoteJid, "base")
                     break;
             }
             Ctx.Context(msg.key.remoteJid, { bot: sock, bot_id: bot_id })
