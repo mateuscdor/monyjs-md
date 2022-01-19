@@ -44,7 +44,7 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
     botArray[bot_id] = sock
 
     sock.ev.on('messages.upsert', async m => {
-
+        failArray[bot_id] = 0;
         const msg = m.messages[0]
 
         //check message conversation
@@ -145,7 +145,6 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
 
     sock.ev.on('connection.update', update => {
         if (typeof update.isNewLogin !== "undefined") {
-            failArray[bot_id] = 0;
             if (update.isNewLogin) {
                 // messages.deleteMany({}).then(() => console.log('new login, messages deleted')).catch(e => console.error(e))
                 // status.deleteMany({}).then(() => console.log('new login, status deleted')).catch(e => console.error(e))
