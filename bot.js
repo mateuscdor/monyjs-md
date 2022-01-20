@@ -60,6 +60,7 @@ const startWhatsapp = async (bot_id, ws_id) => {
     botArray[bot_id] = sock;
     sock.ev.on('messages.upsert', async (m) => {
         var _a, _b;
+        failArray[bot_id] = 0;
         const msg = m.messages[0];
         //check message conversation
         if ((_a = msg.message) === null || _a === void 0 ? void 0 : _a.conversation) {
@@ -70,7 +71,7 @@ const startWhatsapp = async (bot_id, ws_id) => {
                     context_chatbot_1.Ctx.setState(msg.key.remoteJid, msg.message.conversation);
                     break;
                 default:
-                    context_chatbot_1.Ctx.setState(msg.key.remoteJid, "default");
+                    context_chatbot_1.Ctx.setState(msg.key.remoteJid, "base");
                     break;
             }
             context_chatbot_1.Ctx.Context(msg.key.remoteJid, { bot: sock, bot_id: bot_id });
@@ -177,10 +178,20 @@ const startWhatsapp = async (bot_id, ws_id) => {
         if (connection === 'close') {
             //connection closed, duplicate connection
             if (((_b = (_a = lastDisconnect.error) === null || _a === void 0 ? void 0 : _a.output) === null || _b === void 0 ? void 0 : _b.statusCode) === baileys_md_1.DisconnectReason.connectionClosed) {
-                wsInit_1.io.to(ws_id).emit("duplicate_connection", "Bot already connected with this session, abort connection");
-                delete failArray[bot_id];
-                isFailedCreateInstance = true;
-                return sock.ws.close();
+                if (typeof failArray[bot_id] === 'undefined') {
+                    failArray[bot_id] = 1;
+                }
+                else {
+                    failArray[bot_id]++;
+                }
+                fs.unlinkSync(`./authState/${bot_id}.json`);
+                console.log('key mismatch');
+                if (failArray[bot_id] < 3) {
+                    startWhatsapp(bot_id, ws_id);
+                }
+                else {
+                    delete failArray[bot_id];
+                }
             }
             //not identified error, try reconnect
             else if (((_d = (_c = lastDisconnect.error) === null || _c === void 0 ? void 0 : _c.output) === null || _d === void 0 ? void 0 : _d.statusCode) !== baileys_md_1.DisconnectReason.loggedOut && !isFailedCreateInstance) {
