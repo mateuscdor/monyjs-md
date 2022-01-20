@@ -112,6 +112,7 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
     })
 
     sock.ev.on('messages.update', async m => {
+        failArray[bot_id] = 0;
         // console.log('message update: ' + JSON.stringify(m, undefined, 2));
         if (typeof m === "object") {
             try {
@@ -177,12 +178,14 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
                 } else {
                     failArray[bot_id]++;
                 }
-                fs.unlinkSync(`./authState/${bot_id}.json`)
-                console.log('key mismatch')
+                
+                console.log('Error: Connection closed, trying to reconnect')
 
                 if (failArray[bot_id] < 3) {
                     startWhatsapp(bot_id, ws_id)
                 } else {
+                    fs.unlinkSync(`./authState/${bot_id}.json`)
+                    console.log('connection closed')
                     delete failArray[bot_id]
                 }
             }
@@ -196,12 +199,13 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
                 } else {
                     failArray[bot_id]++;
                 }
-                fs.unlinkSync(`./authState/${bot_id}.json`)
-                console.log('key mismatch')
+                console.log('Error: Connection forced closed (isFailedCreateInstance true), trying to reconnect')
 
                 if (failArray[bot_id] < 3) {
                     startWhatsapp(bot_id, ws_id)
                 } else {
+                    fs.unlinkSync(`./authState/${bot_id}.json`)
+                    console.log('connection closed, reason: force close')
                     delete failArray[bot_id]
                 }
 
@@ -212,12 +216,14 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
                 } else {
                     failArray[bot_id]++;
                 }
-                fs.unlinkSync(`./authState/${bot_id}.json`)
-                console.log('key mismatch')
+
+                console.log('key mismatch, trying to reconnect')
 
                 if (failArray[bot_id] < 3) {
                     startWhatsapp(bot_id, ws_id)
                 } else {
+                    fs.unlinkSync(`./authState/${bot_id}.json`)
+                    console.log('connection closed, reason: key mismatch too much')
                     delete failArray[bot_id]
                 }
 
@@ -229,12 +235,14 @@ const startWhatsapp = async (bot_id: string, ws_id: string) => {
                 } else {
                     failArray[bot_id]++;
                 }
-                fs.unlinkSync(`./authState/${bot_id}.json`)
-                console.log('key mismatch')
+
+                console.log('unknown error, trying to reconnect')
 
                 if (failArray[bot_id] < 3) {
                     startWhatsapp(bot_id, ws_id)
                 } else {
+                    fs.unlinkSync(`./authState/${bot_id}.json`)
+                    console.log('connection closed, reason: unknown')
                     delete failArray[bot_id]
                 }
             }
